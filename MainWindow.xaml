@@ -7,6 +7,19 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
     <Grid>
-        
+        <Canvas HorizontalAlignment="Left" Height="310" Margin="10,100,0,0" VerticalAlignment="Top" Width="542"/>
+        <StackPanel Orientation="Horizontal"  Height="33" Margin="10,10,10,377">
+            <Label Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <ComboBox HorizontalAlignment="Left" VerticalAlignment="Center" Width="120"/>
+            <Label Content="Baudrate: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Center" Width="65"/>
+            <Button Content="Button" HorizontalAlignment="Left" VerticalAlignment="Center" Width="97" Margin="20,0,0,0"/>
+        </StackPanel>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="592,149,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="59" RenderTransformOrigin="1.101,2.361"/>
+        <Frame Content="Frame" HorizontalAlignment="Left" Height="328" Margin="574,82,0,0" VerticalAlignment="Top" Width="208"/>
+        <TextBox HorizontalAlignment="Left" Height="23" Margin="677,149,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="57" RenderTransformOrigin="0.828,0.49"/>
+        <Label Content="x" HorizontalAlignment="Left" Margin="656,149,0,0" VerticalAlignment="Top"/>
+        <Button Content="Button" HorizontalAlignment="Left" Margin="739,150,0,0" VerticalAlignment="Top" Width="38"/>
+
     </Grid>
 </Window>
