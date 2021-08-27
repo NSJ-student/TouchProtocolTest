@@ -1,0 +1,15 @@
+D:\Projects\Other Projects\TouchProtocolTest\bin\Debug\TouchProtocolTest.exe.config
+D:\Projects\Other Projects\TouchProtocolTest\bin\Debug\TouchProtocolTest.exe
+D:\Projects\Other Projects\TouchProtocolTest\bin\Debug\TouchProtocolTest.pdb
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.csproj.AssemblyReference.cache
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\MainWindow.g.cs
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\App.g.cs
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest_MarkupCompile.cache
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest_MarkupCompile.lref
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\MainWindow.baml
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.g.resources
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.Properties.Resources.resources
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.csproj.GenerateResource.cache
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.csproj.CoreCompileInputs.cache
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.exe
+D:\Projects\Other Projects\TouchProtocolTest\obj\Debug\TouchProtocolTest.pdb

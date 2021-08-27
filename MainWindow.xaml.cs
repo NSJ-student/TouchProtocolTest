@@ -48,20 +48,35 @@ namespace TouchProtocolTest
 
         private void btnSerialConnect_Click(object sender, RoutedEventArgs e)
         {
-            if((SerialControl != null) && (SerialControl.IsOpen))
+            if((string)btnSerialConnect.Content == "Connect")
             {
-                SerialControl.ClosePort();
-            }
-            string port = cbSerialPort.SelectedItem.ToString();
-            int baudrate = Int32.Parse(lblBaudrate.Text);
-            SerialControl = new SerialCom(port, baudrate);
-            if(SerialControl.OpenPort())
-            {
-                Title = "Touch Test - " + port;
+                if ((SerialControl != null) && (SerialControl.IsOpen))
+                {
+                    SerialControl.ClosePort();
+                }
+                string port = cbSerialPort.SelectedItem.ToString();
+                int baudrate = Int32.Parse(lblBaudrate.Text);
+                SerialControl = new SerialCom(port, baudrate);
+                if (SerialControl.OpenPort())
+                {
+                    Title = "Touch Test - " + port;
+                    btnSerialConnect.Content = "Close";
+                    cbSerialPort.IsEnabled = false;
+                    lblBaudrate.IsEnabled = false;
+                }
+                else
+                {
+                    Title = "Touch Test - disconnected";
+                    cbSerialPort.IsEnabled = true;
+                    lblBaudrate.IsEnabled = true;
+                }
             }
             else
             {
-                Title = "Touch Test - disconnected";
+                SerialControl.ClosePort();
+                btnSerialConnect.Content = "Connect";
+                cbSerialPort.IsEnabled = true;
+                lblBaudrate.IsEnabled = true;
             }
         }
 
