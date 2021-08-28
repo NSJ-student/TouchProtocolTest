@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TouchProtocolTest"
+        xmlns:lvc="clr-namespace:LiveCharts.Wpf;assembly=LiveCharts.Wpf"
         mc:Ignorable="d"
         Title="Touch Test" Height="450" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing">
     <Grid>
@@ -16,7 +17,11 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="45*"/>
         </Grid.ColumnDefinitions>
-        <Canvas x:Name="cvsTouch" Margin="0,0,0.2,0" Grid.RowSpan="2" Background="#FFA2C8F7" MouseLeave="cvsTouch_MouseLeave" Grid.Row="1"/>
+        <lvc:CartesianChart Grid.Row="1" LegendLocation="Top">
+            <lvc:CartesianChart.Series>
+                <lvc:ScatterSeries Title="Series A" MaxPointShapeDiameter="6" MinPointShapeDiameter="5"  />
+            </lvc:CartesianChart.Series>
+        </lvc:CartesianChart>
         <StackPanel Orientation="Horizontal" Margin="5,5,4.6,5.2" Grid.ColumnSpan="4">
             <Label Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <ComboBox x:Name="cbSerialPort" HorizontalAlignment="Left" VerticalAlignment="Center" Width="90" Margin="0,2,0,1.6"/>

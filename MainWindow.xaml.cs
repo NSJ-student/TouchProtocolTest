@@ -14,6 +14,8 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO.Ports;
 using System.ComponentModel;
+using LiveCharts;
+using LiveCharts.Defaults;
 
 namespace TouchProtocolTest
 {
@@ -29,12 +31,17 @@ namespace TouchProtocolTest
         {
             InitializeComponent();
 
+            //범례 위치 설정
+            graphTouch.LegendLocation = LiveCharts.LegendLocation.Top;
+            //세로 눈금 값 설정
+            graphTouch.AxisY.Add(new LiveCharts.Wpf.Axis { MinValue = 0, MaxValue = 1080 });
+            //가로 눈금 값 설정
+            graphTouch.AxisX.Add(new LiveCharts.Wpf.Axis { MinValue = 0, MaxValue = 1920 });
+
+            touchObjects.Values = new ChartValues<ObservablePoint>();
+            
             SerialControl = null;
-
-            cvsTouch.MouseMove += canvas_MouseMove;
-            cvsTouch.MouseUp += canvas_MouseUp;
-            cvsTouch.MouseDown += canvas_MouseDown;
-
+            
             listTouch = new List<UserTouchInfo>();
             listTouchData.ItemsSource = listTouch;
 
@@ -66,7 +73,7 @@ namespace TouchProtocolTest
                 }
                 else
                 {
-                    Title = "Touch Test - disconnected";
+                    Title = "Touch Test - connect failed";
                     cbSerialPort.IsEnabled = true;
                     lblBaudrate.IsEnabled = true;
                 }
@@ -75,6 +82,7 @@ namespace TouchProtocolTest
             {
                 SerialControl.ClosePort();
                 btnSerialConnect.Content = "Connect";
+                Title = "Touch Test";
                 cbSerialPort.IsEnabled = true;
                 lblBaudrate.IsEnabled = true;
             }
@@ -82,7 +90,11 @@ namespace TouchProtocolTest
 
         private void btnScreenSizeSet_Click(object sender, RoutedEventArgs e)
         {
-
+            int width = Convert.ToInt32(txtScreenWidth.Text);
+            int height = Convert.ToInt32(txtScreenHeight.Text);
+            
+            graphTouch.AxisX[0].MaxValue = width;
+            graphTouch.AxisY[0].MaxValue = height;
         }
 
         private void Window_KeyDown(object sender, KeyEventArgs e)
@@ -98,66 +110,6 @@ namespace TouchProtocolTest
             }
         }
         
-
-        private void cvsTouch_MouseLeave(object sender, MouseEventArgs e)
-        {
-            cvsTouch.ReleaseMouseCapture();
-        }
-
-        private void canvas_MouseDown(object sender, MouseEventArgs e)
-        {
-            cvsTouch.CaptureMouse();
-        }
-
-        private void canvas_MouseUp(object sender, MouseEventArgs e)
-        {
-            // we are now no longer drawing
-            cvsTouch.ReleaseMouseCapture();
-            listTouchData.Items.Refresh();
-            listTouchData.SelectedIndex = listTouchData.Items.Count - 1;
-            listTouchData.ScrollIntoView(listTouchData.SelectedItem);
-        }
-
-        private void canvas_MouseMove(object sender, MouseEventArgs e)
-        {
-            //if we are not drawing, we don't need to do anything when the mouse moves
-            if (!cvsTouch.IsMouseCaptured)
-                return;
-
-            Point location = e.GetPosition(cvsTouch);
-            
-            if((location.X < 0) || (location.Y < 0))
-            {
-                return;
-            }
-            if ((location.X > cvsTouch.RenderSize.Width) || (location.Y > cvsTouch.RenderSize.Height))
-            {
-                return;
-            }
-
-            //Console.WriteLine("X:{0} Y {1} W{2} H{3}", location.X, location.Y, cvsTouch.RenderSize.Width, cvsTouch.RenderSize.Height);
-            Ellipse myEllipse = new Ellipse();
-            SolidColorBrush mySolidColorBrush = new SolidColorBrush();
-            mySolidColorBrush.Color = Colors.Black;
-            myEllipse.Fill = mySolidColorBrush;
-            myEllipse.StrokeThickness = 2;
-            myEllipse.Stroke = Brushes.Black;
-
-            Canvas.SetTop(myEllipse, location.Y);
-            Canvas.SetLeft(myEllipse, location.X);
-
-            // Set the width and height of the Ellipse.
-            myEllipse.Width = 3;
-            myEllipse.Height = 3;
-
-            // How to set center of ellipse???
-
-            cvsTouch.Children.Add(myEllipse);
-            listTouch.Add(new UserTouchInfo(location.X, location.Y));
-
-            Touch_Send(location);
-        }
-
         private bool Touch_Send(Point point)
         {
             if ((SerialControl != null) && (SerialControl.IsOpen))
@@ -230,7 +182,7 @@ namespace TouchProtocolTest
 
         private void btnTouchClear_Click(object sender, RoutedEventArgs e)
         {
-            cvsTouch.Children.Clear();
+            touchObjects.Values.Clear();
             listTouch.Clear();
             listTouchData.Items.Refresh();
         }
@@ -241,6 +193,82 @@ namespace TouchProtocolTest
             {
                 SerialControl.ClosePort();
             }
+        }
+
+        private void touchObjects_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            touchObjects.CaptureMouse();
+
+            Point location = e.GetPosition(touchObjects);
+
+            if ((location.X < 0) || (location.Y < 0))
+            {
+                return;
+            }
+            if ((location.X > Convert.ToInt32(txtScreenWidth.Text)) ||
+                (location.Y > Convert.ToInt32(txtScreenHeight.Text)))
+            {
+                return;
+            }
+
+            touchObjects.Values.Add(new ObservablePoint(location.X, location.Y));
+            listTouch.Add(new UserTouchInfo(location.X, location.Y));
+
+            Touch_Send(location);
+        }
+
+        private void touchObjects_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (!touchObjects.IsMouseCaptured)
+                return;
+
+            Point location = e.GetPosition(touchObjects);
+
+            if ((location.X < 0) || (location.Y < 0))
+            {
+                return;
+            }
+            if ((location.X > Convert.ToInt32(txtScreenWidth.Text)) ||
+                (location.Y > Convert.ToInt32(txtScreenHeight.Text)))
+            {
+                return;
+            }
+
+            touchObjects.Values.Add(new ObservablePoint(location.X, location.Y));
+            listTouch.Add(new UserTouchInfo(location.X, location.Y));
+
+            Touch_Send(location);
+        }
+
+        private void touchObjects_MouseLeave(object sender, MouseEventArgs e)
+        {
+            touchObjects.ReleaseMouseCapture();
+        }
+
+        private void touchObjects_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            Point location = e.GetPosition(touchObjects);
+
+            if ((location.X < 0) || (location.Y < 0))
+            {
+                return;
+            }
+            if ((location.X > Convert.ToInt32(txtScreenWidth.Text)) ||
+                (location.Y > Convert.ToInt32(txtScreenHeight.Text)))
+            {
+                return;
+            }
+
+            touchObjects.Values.Add(new ObservablePoint(location.X, location.Y));
+            listTouch.Add(new UserTouchInfo(location.X, location.Y));
+
+            Touch_Send(location);
+
+            // we are now no longer drawing
+            touchObjects.ReleaseMouseCapture();
+            listTouchData.Items.Refresh();
+            listTouchData.SelectedIndex = listTouchData.Items.Count - 1;
+            listTouchData.ScrollIntoView(listTouchData.SelectedItem);
         }
     }
 
