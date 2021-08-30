@@ -30,7 +30,15 @@ namespace TouchProtocolTest
         SerialCom SerialControl;
         List<UserTouchInfo> listTouch;
         List<Ellipse> listFinger;
-        List<SolidColorBrush> listFingerColor;
+        List<SolidColorBrush> listFingerColor = new List<SolidColorBrush>() { 
+            Brushes.Red, 
+            Brushes.Yellow, 
+            Brushes.Green, 
+            Brushes.SkyBlue, 
+            Brushes.MediumPurple  
+        };
+        public double touchObjDiameter = 3;
+        public static RoutedCommand serialRefresh = new RoutedCommand();
 
         public MainWindow()
         {
@@ -49,11 +57,25 @@ namespace TouchProtocolTest
             string[] ports = SerialPort.GetPortNames();
             foreach (string item in ports)
             {
-                cbSerialPort.Items.Add(item);
+                try
+                {
+                    SerialPort port = new SerialPort(item, 460800);
+                    port.Open();
+                    if (port.IsOpen)
+                    {
+                        cbSerialPort.Items.Add(item);
+                        port.Close();
+                    }
+                }
+                catch(Exception ex)
+                {
+
+                }
             }
 
             txtCursorPos.Visibility = Visibility.Hidden;
 
+            // finger panel에 center line 추가
             Line lineVertical = new Line();
             lineVertical.StrokeThickness = 1;
             lineVertical.Stroke = Brushes.White;
@@ -71,13 +93,7 @@ namespace TouchProtocolTest
             lineHorizontal.Y2 = 75;
             cvsFinger.Children.Add(lineHorizontal);
 
-            listFingerColor = new List<SolidColorBrush>();
-            listFingerColor.Add(Brushes.Red);
-            listFingerColor.Add(Brushes.Yellow);
-            listFingerColor.Add(Brushes.Green);
-            listFingerColor.Add(Brushes.SkyBlue);
-            listFingerColor.Add(Brushes.MediumPurple);
-
+            // finger panel에 finger 추가
             listFinger = new List<Ellipse>();
             listFinger.Add(addFinger(new Point(75, 75)));
             listFinger.Add(addFinger(new Point(75, 75)));
@@ -88,6 +104,10 @@ namespace TouchProtocolTest
             {
                 listFinger[cnt].Visibility = Visibility.Hidden;
             }
+
+            // F2 shortcut (포트 새로고침)
+            serialRefresh.InputGestures.Add(new KeyGesture(Key.F2, ModifierKeys.None));
+            CommandBindings.Add(new CommandBinding(serialRefresh, serialPortRefresh));
         }
 
 
@@ -246,8 +266,10 @@ namespace TouchProtocolTest
             int real_width = Convert.ToInt32(txtScreenWidth.Text);
             int real_height = Convert.ToInt32(txtScreenHeight.Text);
 
-            double width = gridMain.ActualWidth - 25.0 - stackControl.ActualWidth;
-            double height = gridMain.ActualHeight - 10.0 - stackConnect.ActualHeight;
+            double width = (gridMain.ActualWidth) - 
+                (stackControl.Margin.Left + stackControl.Margin.Right + stackControl.ActualWidth) - 5.0;
+            double height = (gridMain.ActualHeight) - 
+                (stackConnect.Margin.Bottom + stackConnect.Margin.Top + stackConnect.ActualHeight);
 
             double exp_height = width * real_height / real_width;
             if (exp_height <= height)
@@ -286,9 +308,6 @@ namespace TouchProtocolTest
             int real_width = Convert.ToInt32(txtScreenWidth.Text);
             int real_height = Convert.ToInt32(txtScreenHeight.Text);
 
-            Point real_location = new Point(
-                location.X * real_width / cvs_width,
-                location.Y * real_height / cvs_height);
             List<Point> real_points = new List<Point>();
             for (int cnt = 0; cnt < points.Count; cnt++)
             {
@@ -298,11 +317,20 @@ namespace TouchProtocolTest
                 real_points.Add(new Point(x, y));
             }
 
-            touchObject_Tooltip(location, real_points);
-            listTouch.Add(new UserTouchInfo(real_location.X, real_location.Y, touchObject_Type(type)));
-            if(listTouch.Count > 30)
+            if (cbToolTipEnable.IsChecked == true)
             {
-                listTouch.RemoveAt(0);
+                touchObject_Tooltip(location, real_points);
+            }
+            if (cbShowMethod.IsChecked == true)
+            {
+                touchObj_PrintInfo(real_points, type);
+            }
+            else
+            {
+                Point real_location = new Point(
+                    location.X * real_width / cvs_width,
+                    location.Y * real_height / cvs_height);
+                touchObj_PrintInfo(real_location, type);
             }
 
             Touch_Send(real_points, type);
@@ -310,10 +338,6 @@ namespace TouchProtocolTest
 
         private void touchObject_Tooltip(Point location, List<Point> real_locations)
         {
-            if(cbToolTipEnable.IsChecked != true)
-            {
-                return;
-            }
             txtCursorPos.Text = "";
             for (int cnt = 0; cnt < real_locations.Count; cnt++)
             {
@@ -327,7 +351,7 @@ namespace TouchProtocolTest
 
             if (cvsTouch.ActualWidth > location.X + txtCursorPos.ActualWidth)
             {
-                Canvas.SetLeft(txtCursorPos, location.X);
+                Canvas.SetLeft(txtCursorPos, location.X + 1);
             }
             else
             {
@@ -354,11 +378,14 @@ namespace TouchProtocolTest
                 myEllipse.StrokeThickness = 2;
                 myEllipse.Stroke = listFingerColor[cnt];
 
-                myEllipse.Width = 3;
-                myEllipse.Height = 3;
+                myEllipse.Width = touchObjDiameter;
+                myEllipse.Height = touchObjDiameter;
 
-                Canvas.SetTop(myEllipse, positions[cnt].Y - 1.5);
-                Canvas.SetLeft(myEllipse, positions[cnt].X - 1.5);
+                Canvas.SetTop(myEllipse, positions[cnt].Y - (touchObjDiameter / 2));
+                Canvas.SetLeft(myEllipse, positions[cnt].X - (touchObjDiameter / 2));
+
+                myEllipse.MouseEnter += touchObj_MouseEnter;
+                myEllipse.MouseLeave += touchObj_MouseLeave;
 
                 cvsTouch.Children.Add(myEllipse);
             }
@@ -382,6 +409,109 @@ namespace TouchProtocolTest
             {
                 return "None";
             }
+        }
+
+        private void touchObj_PrintInfo(Point real_location, TouchType type)
+        {
+            listTouch.Add(new UserTouchInfo(real_location.X, real_location.Y, touchObject_Type(type)));
+            if (listTouch.Count > 30)
+            {
+                listTouch.RemoveAt(0);
+            }
+        }
+
+        private void touchObj_PrintInfo(List<Point> positions, TouchType type)
+        {
+            lblTouchType.Content = touchObject_Type(type);
+
+            if (positions.Count > 0)
+            {
+                lblTouchX1.Content = Convert.ToInt32(Math.Round(positions[0].X)).ToString();
+                lblTouchY1.Content = Convert.ToInt32(Math.Round(positions[0].Y)).ToString();
+            }
+            else
+            {
+                lblTouchX1.Content = "";
+                lblTouchY1.Content = "";
+            }
+
+            if (positions.Count > 1)
+            {
+                lblTouchX2.Content = Convert.ToInt32(Math.Round(positions[1].X)).ToString();
+                lblTouchY2.Content = Convert.ToInt32(Math.Round(positions[1].Y)).ToString();
+            }
+            else
+            {
+                lblTouchX2.Content = "";
+                lblTouchY2.Content = "";
+            }
+
+            if (positions.Count > 2)
+            {
+                lblTouchX3.Content = Convert.ToInt32(Math.Round(positions[2].X)).ToString();
+                lblTouchY3.Content = Convert.ToInt32(Math.Round(positions[2].Y)).ToString();
+            }
+            else
+            {
+                lblTouchX3.Content = "";
+                lblTouchY3.Content = "";
+            }
+
+            if (positions.Count > 3)
+            {
+                lblTouchX4.Content = Convert.ToInt32(Math.Round(positions[3].X)).ToString();
+                lblTouchY4.Content = Convert.ToInt32(Math.Round(positions[3].Y)).ToString();
+            }
+            else
+            {
+                lblTouchX4.Content = "";
+                lblTouchY4.Content = "";
+            }
+
+            if (positions.Count > 4)
+            {
+                lblTouchX5.Content = Convert.ToInt32(Math.Round(positions[4].X)).ToString();
+                lblTouchY5.Content = Convert.ToInt32(Math.Round(positions[4].Y)).ToString();
+            }
+            else
+            {
+                lblTouchX5.Content = "";
+                lblTouchY5.Content = "";
+            }
+        }
+
+        /*****************/
+        //  Touch Event
+        /*****************/
+
+        private void touchObj_MouseEnter(object sender, MouseEventArgs e)
+        {
+            if (cvsTouch.IsMouseCaptured)
+                return;
+
+            Point location = e.GetPosition(cvsTouch);
+
+            Ellipse selected = sender as Ellipse;
+            double x = Canvas.GetLeft(selected) + (touchObjDiameter / 2);
+            double y = Canvas.GetTop(selected) + (touchObjDiameter / 2);
+            int real_width = Convert.ToInt32(txtScreenWidth.Text);
+            int real_height = Convert.ToInt32(txtScreenHeight.Text);
+            double cvs_width = cvsTouch.ActualWidth;
+            double cvs_height = cvsTouch.ActualHeight;
+            Point real_location = new Point(
+                x * real_width / cvs_width,
+                y * real_height / cvs_height);
+
+            touchObject_Tooltip(location, new List<Point>() { real_location });
+            txtCursorPos.Visibility = Visibility.Visible;
+        }
+
+        private void touchObj_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (cvsTouch.IsMouseCaptured)
+                return;
+
+            txtCursorPos.Visibility = Visibility.Hidden;
         }
 
         private void cvsTouch_MouseLeave(object sender, MouseEventArgs e)
@@ -436,6 +566,18 @@ namespace TouchProtocolTest
             cvsTouch.Children.Add(txtCursorPos);
             listTouch.Clear();
             listTouchData.Items.Refresh();
+
+            lblTouchType.Content = "";
+            lblTouchX1.Content = "";
+            lblTouchY1.Content = "";
+            lblTouchX2.Content = "";
+            lblTouchY2.Content = "";
+            lblTouchX3.Content = "";
+            lblTouchY3.Content = "";
+            lblTouchX4.Content = "";
+            lblTouchY4.Content = "";
+            lblTouchX5.Content = "";
+            lblTouchY5.Content = "";
         }
 
         private void btnScreenSizeSet_Click(object sender, RoutedEventArgs e)
@@ -469,6 +611,27 @@ namespace TouchProtocolTest
 
             return myEllipse;
         }
+
+        private List<Point> finger_relativePosition(Point center)
+        {
+            List<Point> list = new List<Point>();
+
+            ComboBoxItem item = cbFingerCount.SelectedItem as ComboBoxItem;
+            int finger = Convert.ToInt32(item.Content);
+
+            for (int cnt = 0; cnt < finger; cnt++)
+            {
+                double x = center.X + Canvas.GetLeft(listFinger[cnt]) - 70;
+                double y = center.Y + Canvas.GetTop(listFinger[cnt]) - 70;
+                list.Add(new Point(x, y));
+            }
+
+            return list;
+        }
+
+        /*****************/
+        //  Finger Event
+        /*****************/
 
         private void finger_MouseDown(object sender, MouseEventArgs e)
         {
@@ -525,23 +688,70 @@ namespace TouchProtocolTest
             }
         }
 
-        private List<Point> finger_relativePosition(Point center)
+
+        /**************************/
+        //     UI Options
+        /**************************/
+
+        private void cbShowMethod_Checked(object sender, RoutedEventArgs e)
         {
-            List<Point> list = new List<Point>();
-
-            ComboBoxItem item = cbFingerCount.SelectedItem as ComboBoxItem;
-            int finger = Convert.ToInt32(item.Content);
-
-            for (int cnt = 0; cnt < finger; cnt++)
-            {
-                double x = center.X + Canvas.GetLeft(listFinger[cnt]) - 70;
-                double y = center.Y + Canvas.GetTop(listFinger[cnt]) - 70;
-                list.Add(new Point(x, y));
-            }
-            
-            return list;
+            tabShowMethod.SelectedIndex = 1;
+            cbShowMethod.Content = " All Value";
         }
 
+        private void cbShowMethod_Unchecked(object sender, RoutedEventArgs e)
+        {
+            tabShowMethod.SelectedIndex = 0;
+            cbShowMethod.Content = " Time Table";
+        }
+        
+        private void txtTouchDiameter_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                try
+                {
+                    int touch_diameter = Convert.ToInt32(txtTouchDiameter.Text);
+
+                    if (touch_diameter <= 15)
+                    {
+                        touchObjDiameter = touch_diameter;
+                    }
+                    else if (touch_diameter <= 1)
+                    {
+                        touchObjDiameter = 2;
+                        txtTouchDiameter.Text = "2";
+                    }
+                    else
+                    {
+                        touchObjDiameter = 15;
+                        txtTouchDiameter.Text = "15";
+                    }
+                }
+                catch
+                {
+                    touchObjDiameter = 3;
+                    txtTouchDiameter.Text = "3";
+                }
+            }
+        }
+        
+        private void btnBackgroundImage_Click(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog dialog = new Microsoft.Win32.OpenFileDialog();
+            dialog.Filter = "Image File(*.jpg;*.png;*.bmp)|*.jpg;*.png;*.bmp";
+            if (dialog.ShowDialog() == true)
+            {
+                ImageBrush ib = new ImageBrush();
+                ib.ImageSource = new BitmapImage(new Uri(dialog.FileName, UriKind.Relative));
+                cvsTouch.Background = ib;
+            }
+        }
+
+        private void btnBackgroundColor_Click(object sender, RoutedEventArgs e)
+        {
+            cvsTouch.Background = Brushes.Black;
+        }
 
         /**************************/
         //     UI Event
@@ -611,6 +821,58 @@ namespace TouchProtocolTest
         private void StackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             touchPanel_SizeChange();
+        }
+
+        private void serialPortRefresh(object sender, ExecutedRoutedEventArgs e)
+        {
+            if ((SerialControl == null) || (!SerialControl.IsOpen))
+            {
+                cbSerialPort.Items.Clear();
+                string[] ports = SerialPort.GetPortNames();
+                foreach (string item in ports)
+                {
+                    try
+                    {
+                        SerialPort port = new SerialPort(item, 460800);
+                        port.Open();
+                        if (port.IsOpen)
+                        {
+                            cbSerialPort.Items.Add(item);
+                            port.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private void txtScreenWidth_GotFocus(object sender, RoutedEventArgs e)
+        {
+            txtScreenWidth.SelectAll();
+        }
+
+        private void txtScreenHeight_GotFocus(object sender, RoutedEventArgs e)
+        {
+            txtScreenHeight.SelectAll();
+        }
+
+        private void txtScreenHeight_KeyUp(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                touchPanel_SizeChange();
+            }
+        }
+
+        private void txtScreenWidth_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                touchPanel_SizeChange();
+            }
         }
 
     }

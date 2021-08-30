@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TouchProtocolTest"
         mc:Ignorable="d"
-        Title="Touch Test" Height="450" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged">
-    <Grid x:Name="gridMain">
+        Title="Touch Protocol Test" Height="500" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged" WindowStyle="ToolWindow">
+    <Grid x:Name="gridMain" Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -16,7 +16,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="50*"/>
         </Grid.ColumnDefinitions>
-        <Canvas x:Name="cvsTouch" Margin="0,0,0.2,0" Grid.RowSpan="2" MouseLeave="cvsTouch_MouseLeave" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" Background="Black" ClipToBounds="True">
+        <Canvas x:Name="cvsTouch" Margin="0" Grid.RowSpan="2" MouseLeave="cvsTouch_MouseLeave" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" Background="Black" ClipToBounds="True">
             <TextBlock x:Name="txtCursorPos" HorizontalAlignment="Left" Margin="0" TextWrapping="Wrap" Text="none" VerticalAlignment="Top" Padding="5,2" Background="White" Canvas.Left="26" Canvas.Top="44" Panel.ZIndex="100"/>
         </Canvas>
         <StackPanel x:Name="stackConnect" Orientation="Horizontal" Margin="5" Grid.ColumnSpan="4">
@@ -35,31 +35,21 @@
         <Grid x:Name="stackControl" Grid.Row="1" Grid.Column="2" Margin="10" SizeChanged="StackPanel_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal" Margin="0,0,0,5">
                 <Label Content="Range: " HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtScreenWidth" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1920" VerticalAlignment="Center" Width="45" RenderTransformOrigin="1.101,2.361" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0"/>
+                <TextBox x:Name="txtScreenWidth" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1920" VerticalAlignment="Center" Width="45" RenderTransformOrigin="1.101,2.361" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0" GotFocus="txtScreenWidth_GotFocus" KeyUp="txtScreenWidth_KeyUp"/>
                 <Label Content="x" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtScreenHeight" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1080" VerticalAlignment="Center" Width="45" RenderTransformOrigin="0.828,0.49" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="0"/>
+                <TextBox x:Name="txtScreenHeight" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1080" VerticalAlignment="Center" Width="45" RenderTransformOrigin="0.828,0.49" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="0" GotFocus="txtScreenHeight_GotFocus" KeyUp="txtScreenHeight_KeyUp"/>
                 <Button x:Name="btnScreenSizeSet" Content="SET" HorizontalAlignment="Left" VerticalAlignment="Center" Width="48" Margin="10,0,0,0" Click="btnScreenSizeSet_Click"/>
             </StackPanel>
-            <ListView x:Name="listTouchData" Margin="0,10,0,0" Grid.Row="2">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
-                        <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
-                        <GridViewColumn Header="X" DisplayMemberBinding="{Binding X}" Width="40"/>
-                        <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Y}" Width="40"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-            <Button x:Name="btnTouchClear" Content="Clear" Click="btnTouchClear_Click" Margin="0" Grid.Row="3"/>
+            <Button x:Name="btnTouchClear" Content="Clear" Click="btnTouchClear_Click" Margin="0" Grid.Row="2"/>
 
-            <Expander Grid.Row="4" Margin="0,10,0,0" Header="Finger Setting">
+            <Expander x:Name="expanderFingerSetting" Grid.Row="3" Margin="0,10,0,0" Header="Finger Setting">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -76,11 +66,84 @@
                             <ComboBoxItem Content="4"/>
                             <ComboBoxItem Content="5"/>
                         </ComboBox>
-                        <Button x:Name="btnFingerDefault" Content="Default" Margin="15,0,0,0" Padding="5,1" Click="btnFingerDefault_Click"></Button>
+                        <Button x:Name="btnFingerDefault" Content="Default" Margin="15,0,0,0" Padding="5,1" Click="btnFingerDefault_Click"/>
                     </StackPanel>
                 </Grid>
             </Expander>
-            <CheckBox x:Name="cbToolTipEnable" Content=" Tooltip Enable" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Grid.Row="1" Padding="0"/>
+            <TabControl x:Name="tabShowMethod" Grid.Row="1" SelectedIndex="0">
+                <TabItem x:Name="tabTimeTable" Header="Time Table" FontSize="1" Visibility="Hidden" Margin="0" Padding="0">
+                    <ListView x:Name="listTouchData" Margin="0" Grid.Row="1" FontSize="12">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
+                                <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
+                                <GridViewColumn Header="X" DisplayMemberBinding="{Binding X}" Width="40"/>
+                                <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Y}" Width="40"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </TabItem>
+                <TabItem x:Name="tabValues" Header="Values" Visibility="Hidden" Margin="0" Padding="0" FontSize="1">
+                    <ScrollViewer FontSize="12">
+                        <Grid Margin="0" Background="#FFE5E5E5">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="Type" HorizontalAlignment="Left" Margin="0,10,0,0" VerticalAlignment="Top" Grid.Row="6" FontWeight="Bold" Padding="10,5,5,10"/>
+                            <Label x:Name="lblTouchType" Content="None" HorizontalAlignment="Center" Margin="0,10,0,0" VerticalAlignment="Top" Grid.Row="6" Grid.Column="1" Padding="5,5,5,10"/>
+                            <Label Content="Touch #1" HorizontalAlignment="Left" Margin="0" Grid.Row="1" VerticalAlignment="Top" FontWeight="Bold" Padding="10,5,5,5"/>
+                            <Label Content="Touch #2" HorizontalAlignment="Left" Margin="0" Grid.Row="2" VerticalAlignment="Top" FontWeight="Bold" Padding="10,5,5,5"/>
+                            <Label Content="Touch #3" HorizontalAlignment="Left" Margin="0" Grid.Row="3" VerticalAlignment="Top" FontWeight="Bold" Padding="10,5,5,5"/>
+                            <Label Content="Touch #4" HorizontalAlignment="Left" Margin="0" Grid.Row="4" VerticalAlignment="Top" FontWeight="Bold" Padding="10,5,5,5"/>
+                            <Label Content="Touch #5" HorizontalAlignment="Left" Margin="0" Grid.Row="5" VerticalAlignment="Top" FontWeight="Bold" Padding="10,5,5,5"/>
+                            <Label Content="X" Grid.Column="1" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Top" FontWeight="Bold" Padding="5,10,5,5"/>
+                            <Label x:Name="lblTouchX1" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="1"/>
+                            <Label x:Name="lblTouchX2" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Top" Grid.Column="1"/>
+                            <Label x:Name="lblTouchX3" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="3" VerticalAlignment="Top" Grid.Column="1"/>
+                            <Label x:Name="lblTouchX4" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="4" VerticalAlignment="Top" Grid.Column="1"/>
+                            <Label x:Name="lblTouchX5" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="5" VerticalAlignment="Top" Grid.Column="1"/>
+                            <Label Content="Y" Grid.Column="2" HorizontalAlignment="Center" Margin="0" VerticalAlignment="Top" FontWeight="Bold" Padding="5,10,5,5"/>
+                            <Label x:Name="lblTouchY1" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="1" VerticalAlignment="Top" Grid.Column="2"/>
+                            <Label x:Name="lblTouchY2" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="2" VerticalAlignment="Top" Grid.Column="2"/>
+                            <Label x:Name="lblTouchY3" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="3" VerticalAlignment="Top" Grid.Column="2"/>
+                            <Label x:Name="lblTouchY4" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="4" VerticalAlignment="Top" Grid.Column="2"/>
+                            <Label x:Name="lblTouchY5" Content="" HorizontalAlignment="Center" Margin="0" Grid.Row="5" VerticalAlignment="Top" Grid.Column="2"/>
+                        </Grid>
+                    </ScrollViewer>
+                </TabItem>
+            </TabControl>
+            <Expander x:Name="expanderOption" Header="Options" Grid.Row="4" Padding="0,5,0,0">
+                <Grid Margin="10,5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <CheckBox x:Name="cbToolTipEnable" Content=" Tooltip Enable" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0"/>
+                    <CheckBox x:Name="cbShowMethod" Content=" Time Table" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0" Grid.Row="1" Checked="cbShowMethod_Checked" Unchecked="cbShowMethod_Unchecked"/>
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0" >
+                        <Label Content="Touch Diameter : "></Label>
+                        <TextBox x:Name="txtTouchDiameter"  Width="30" PreviewKeyUp="txtTouchDiameter_PreviewKeyUp" Text="3" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
+                    </StackPanel>
+                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,5,0,0" >
+                        <Label Content="Background : "></Label>
+                        <Button x:Name="btnBackgroundImage" Content="Image" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundImage_Click"></Button>
+                        <Button x:Name="btnBackgroundColor" Content="Color" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundColor_Click"></Button>
+                    </StackPanel>
+                </Grid>
+            </Expander>
         </Grid>
 
     </Grid>
