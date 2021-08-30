@@ -5,8 +5,8 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TouchProtocolTest"
         mc:Ignorable="d"
-        Title="Touch Test" Height="450" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged">
-    <Grid x:Name="gridMain">
+        Title="Touch Protocol Test" Height="450" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged" WindowStyle="ToolWindow">
+    <Grid x:Name="gridMain" Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition/>
@@ -16,7 +16,7 @@
             <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="50*"/>
         </Grid.ColumnDefinitions>
-        <Canvas x:Name="cvsTouch" Margin="0,0,0.2,0" Grid.RowSpan="2" MouseLeave="cvsTouch_MouseLeave" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" Background="Black" ClipToBounds="True">
+        <Canvas x:Name="cvsTouch" Margin="0" Grid.RowSpan="2" MouseLeave="cvsTouch_MouseLeave" Grid.Row="1" HorizontalAlignment="Center" VerticalAlignment="Center" Width="100" Height="100" Background="Black" ClipToBounds="True">
             <TextBlock x:Name="txtCursorPos" HorizontalAlignment="Left" Margin="0" TextWrapping="Wrap" Text="none" VerticalAlignment="Top" Padding="5,2" Background="White" Canvas.Left="26" Canvas.Top="44" Panel.ZIndex="100"/>
         </Canvas>
         <StackPanel x:Name="stackConnect" Orientation="Horizontal" Margin="5" Grid.ColumnSpan="4">
@@ -35,31 +35,21 @@
         <Grid x:Name="stackControl" Grid.Row="1" Grid.Column="2" Margin="10" SizeChanged="StackPanel_SizeChanged">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="2*"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" Orientation="Horizontal" Margin="0,0,0,5">
                 <Label Content="Range: " HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtScreenWidth" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1920" VerticalAlignment="Center" Width="45" RenderTransformOrigin="1.101,2.361" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0"/>
+                <TextBox x:Name="txtScreenWidth" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1920" VerticalAlignment="Center" Width="45" RenderTransformOrigin="1.101,2.361" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" BorderThickness="0" GotFocus="txtScreenWidth_GotFocus" KeyUp="txtScreenWidth_KeyUp"/>
                 <Label Content="x" HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <TextBox x:Name="txtScreenHeight" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1080" VerticalAlignment="Center" Width="45" RenderTransformOrigin="0.828,0.49" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="0"/>
+                <TextBox x:Name="txtScreenHeight" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="1080" VerticalAlignment="Center" Width="45" RenderTransformOrigin="0.828,0.49" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" BorderThickness="0" GotFocus="txtScreenHeight_GotFocus" KeyUp="txtScreenHeight_KeyUp"/>
                 <Button x:Name="btnScreenSizeSet" Content="SET" HorizontalAlignment="Left" VerticalAlignment="Center" Width="48" Margin="10,0,0,0" Click="btnScreenSizeSet_Click"/>
             </StackPanel>
-            <ListView x:Name="listTouchData" Margin="0,10,0,0" Grid.Row="2">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
-                        <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
-                        <GridViewColumn Header="X" DisplayMemberBinding="{Binding X}" Width="40"/>
-                        <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Y}" Width="40"/>
-                    </GridView>
-                </ListView.View>
-            </ListView>
-            <Button x:Name="btnTouchClear" Content="Clear" Click="btnTouchClear_Click" Margin="0" Grid.Row="3"/>
+            <Button x:Name="btnTouchClear" Content="Clear" Click="btnTouchClear_Click" Margin="0" Grid.Row="2"/>
 
-            <Expander Grid.Row="4" Margin="0,10,0,0" Header="Finger Setting">
+            <Expander x:Name="expanderFingerSetting" Grid.Row="3" Margin="0,10,0,0" Header="Finger Setting">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -80,7 +70,33 @@
                     </StackPanel>
                 </Grid>
             </Expander>
-            <CheckBox x:Name="cbToolTipEnable" Content=" Tooltip Enable" HorizontalAlignment="Left" Margin="10,0,0,0" VerticalAlignment="Center" Grid.Row="1" Padding="0"/>
+            <TabControl x:Name="tabShowMethod" Grid.Row="1">
+                <TabItem x:Name="tabTimeTable" Header="Time Table" FontSize="1" Visibility="Hidden" Margin="0">
+                    <ListView x:Name="listTouchData" Margin="0" Grid.Row="1" FontSize="12">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Time" DisplayMemberBinding="{Binding Time}"/>
+                                <GridViewColumn Header="Type" DisplayMemberBinding="{Binding Type}"/>
+                                <GridViewColumn Header="X" DisplayMemberBinding="{Binding X}" Width="40"/>
+                                <GridViewColumn Header="Y" DisplayMemberBinding="{Binding Y}" Width="40"/>
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </TabItem>
+                <TabItem x:Name="tabValues" Header="Values" FontSize="1" Visibility="Hidden" Margin="0">
+                    <Grid Background="#FFE5E5E5"/>
+                </TabItem>
+            </TabControl>
+            <Expander x:Name="expanderOption" Header="Options" Grid.Row="4">
+                <Grid Background="#FFE5E5E5" Margin="5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+                    <CheckBox x:Name="cbToolTipEnable" Content=" Tooltip Enable" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Center" Padding="0"/>
+                    <CheckBox x:Name="cbShowMethod" Content=" Time Table" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Center" Padding="0" Grid.Row="1" Checked="cbShowMethod_Checked" Unchecked="cbShowMethod_Unchecked"/>
+                </Grid>
+            </Expander>
         </Grid>
 
     </Grid>

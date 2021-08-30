@@ -30,7 +30,14 @@ namespace TouchProtocolTest
         SerialCom SerialControl;
         List<UserTouchInfo> listTouch;
         List<Ellipse> listFinger;
-        List<SolidColorBrush> listFingerColor;
+        List<SolidColorBrush> listFingerColor = new List<SolidColorBrush>() { 
+            Brushes.Red, 
+            Brushes.Yellow, 
+            Brushes.Green, 
+            Brushes.SkyBlue, 
+            Brushes.MediumPurple  
+        };
+        public static RoutedCommand serialRefresh = new RoutedCommand();
 
         public MainWindow()
         {
@@ -49,11 +56,25 @@ namespace TouchProtocolTest
             string[] ports = SerialPort.GetPortNames();
             foreach (string item in ports)
             {
-                cbSerialPort.Items.Add(item);
+                try
+                {
+                    SerialPort port = new SerialPort(item, 460800);
+                    port.Open();
+                    if (port.IsOpen)
+                    {
+                        cbSerialPort.Items.Add(item);
+                        port.Close();
+                    }
+                }
+                catch(Exception ex)
+                {
+
+                }
             }
 
             txtCursorPos.Visibility = Visibility.Hidden;
 
+            // finger panel에 center line 추가
             Line lineVertical = new Line();
             lineVertical.StrokeThickness = 1;
             lineVertical.Stroke = Brushes.White;
@@ -71,13 +92,7 @@ namespace TouchProtocolTest
             lineHorizontal.Y2 = 75;
             cvsFinger.Children.Add(lineHorizontal);
 
-            listFingerColor = new List<SolidColorBrush>();
-            listFingerColor.Add(Brushes.Red);
-            listFingerColor.Add(Brushes.Yellow);
-            listFingerColor.Add(Brushes.Green);
-            listFingerColor.Add(Brushes.SkyBlue);
-            listFingerColor.Add(Brushes.MediumPurple);
-
+            // finger panel에 finger 추가
             listFinger = new List<Ellipse>();
             listFinger.Add(addFinger(new Point(75, 75)));
             listFinger.Add(addFinger(new Point(75, 75)));
@@ -88,6 +103,10 @@ namespace TouchProtocolTest
             {
                 listFinger[cnt].Visibility = Visibility.Hidden;
             }
+
+            // F2 shortcut (포트 새로고침)
+            serialRefresh.InputGestures.Add(new KeyGesture(Key.F2, ModifierKeys.None));
+            CommandBindings.Add(new CommandBinding(serialRefresh, serialPortRefresh));
         }
 
 
@@ -246,8 +265,10 @@ namespace TouchProtocolTest
             int real_width = Convert.ToInt32(txtScreenWidth.Text);
             int real_height = Convert.ToInt32(txtScreenHeight.Text);
 
-            double width = gridMain.ActualWidth - 25.0 - stackControl.ActualWidth;
-            double height = gridMain.ActualHeight - 10.0 - stackConnect.ActualHeight;
+            double width = (gridMain.ActualWidth) - 
+                (stackControl.Margin.Left + stackControl.Margin.Right + stackControl.ActualWidth) - 5.0;
+            double height = (gridMain.ActualHeight) - 
+                (stackConnect.Margin.Bottom + stackConnect.Margin.Top + stackConnect.ActualHeight);
 
             double exp_height = width * real_height / real_width;
             if (exp_height <= height)
@@ -613,6 +634,67 @@ namespace TouchProtocolTest
             touchPanel_SizeChange();
         }
 
+        private void serialPortRefresh(object sender, ExecutedRoutedEventArgs e)
+        {
+            if ((SerialControl == null) || (!SerialControl.IsOpen))
+            {
+                cbSerialPort.Items.Clear();
+                string[] ports = SerialPort.GetPortNames();
+                foreach (string item in ports)
+                {
+                    try
+                    {
+                        SerialPort port = new SerialPort(item, 460800);
+                        port.Open();
+                        if (port.IsOpen)
+                        {
+                            cbSerialPort.Items.Add(item);
+                            port.Close();
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+
+                    }
+                }
+            }
+        }
+
+        private void txtScreenWidth_GotFocus(object sender, RoutedEventArgs e)
+        {
+            txtScreenWidth.SelectAll();
+        }
+
+        private void txtScreenHeight_GotFocus(object sender, RoutedEventArgs e)
+        {
+            txtScreenHeight.SelectAll();
+        }
+
+        private void txtScreenHeight_KeyUp(object sender, KeyEventArgs e)
+        {
+            if(e.Key == Key.Enter)
+            {
+                touchPanel_SizeChange();
+            }
+        }
+
+        private void txtScreenWidth_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                touchPanel_SizeChange();
+            }
+        }
+
+        private void cbShowMethod_Checked(object sender, RoutedEventArgs e)
+        {
+            tabShowMethod.TabIndex = 1;
+        }
+
+        private void cbShowMethod_Unchecked(object sender, RoutedEventArgs e)
+        {
+            tabShowMethod.TabIndex = 0;
+        }
     }
 
     public class UserTouchInfo : INotifyPropertyChanged
