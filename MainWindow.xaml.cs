@@ -303,7 +303,10 @@ namespace TouchProtocolTest
             }
 
             List<Point> points = finger_relativePosition(location);
-            touchObject_Create(points);
+            if(cbDrawEnable.IsChecked == true)
+            {
+                touchObject_Create(points);
+            }
 
             int real_width = Convert.ToInt32(txtScreenWidth.Text);
             int real_height = Convert.ToInt32(txtScreenHeight.Text);
@@ -321,17 +324,12 @@ namespace TouchProtocolTest
             {
                 touchObject_Tooltip(location, real_points);
             }
-            if (cbShowMethod.IsChecked == true)
-            {
-                touchObj_PrintInfo(real_points, type);
-            }
-            else
-            {
-                Point real_location = new Point(
-                    location.X * real_width / cvs_width,
-                    location.Y * real_height / cvs_height);
-                touchObj_PrintInfo(real_location, type);
-            }
+
+            touchObj_PrintInfo(real_points, type);
+            Point real_location = new Point(
+                location.X * real_width / cvs_width,
+                location.Y * real_height / cvs_height);
+            touchObj_PrintInfo(real_location, type);
 
             Touch_Send(real_points, type);
         }
@@ -355,7 +353,7 @@ namespace TouchProtocolTest
             }
             else
             {
-                Canvas.SetLeft(txtCursorPos, location.X - txtCursorPos.ActualWidth);
+                Canvas.SetLeft(txtCursorPos, location.X - txtCursorPos.ActualWidth - 1);
             }
 
             if (location.Y < txtCursorPos.ActualHeight)
@@ -622,7 +620,13 @@ namespace TouchProtocolTest
             for (int cnt = 0; cnt < finger; cnt++)
             {
                 double x = center.X + Canvas.GetLeft(listFinger[cnt]) - 70;
+                if (x < 0) x = 0;
+                if (x > cvsTouch.ActualWidth) x = cvsTouch.ActualWidth;
+
                 double y = center.Y + Canvas.GetTop(listFinger[cnt]) - 70;
+                if (y < 0) y = 0;
+                if (y > cvsTouch.ActualHeight) y = cvsTouch.ActualHeight;
+
                 list.Add(new Point(x, y));
             }
 
@@ -693,18 +697,18 @@ namespace TouchProtocolTest
         //     UI Options
         /**************************/
 
-        private void cbShowMethod_Checked(object sender, RoutedEventArgs e)
+        private void cbShowMethod_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            tabShowMethod.SelectedIndex = 1;
-            cbShowMethod.Content = " All Value";
+            if(cbShowMethod.SelectedIndex == 0)
+            {
+                tabShowMethod.SelectedIndex = 0;
+            }
+            else
+            {
+                tabShowMethod.SelectedIndex = 1;
+            }
         }
 
-        private void cbShowMethod_Unchecked(object sender, RoutedEventArgs e)
-        {
-            tabShowMethod.SelectedIndex = 0;
-            cbShowMethod.Content = " Time Table";
-        }
-        
         private void txtTouchDiameter_PreviewKeyUp(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.Enter)
@@ -752,6 +756,7 @@ namespace TouchProtocolTest
         {
             cvsTouch.Background = Brushes.Black;
         }
+
 
         /**************************/
         //     UI Event

@@ -125,22 +125,32 @@
             </TabControl>
             <Expander x:Name="expanderOption" Header="Options" Grid.Row="4" Padding="0,5,0,0">
                 <Grid Margin="10,5">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="1*"/>
+                    </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
-                    <CheckBox x:Name="cbToolTipEnable" Content=" Tooltip Enable" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0"/>
-                    <CheckBox x:Name="cbShowMethod" Content=" Time Table" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0" Grid.Row="1" Checked="cbShowMethod_Checked" Unchecked="cbShowMethod_Unchecked"/>
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0" >
-                        <Label Content="Touch Diameter : "></Label>
-                        <TextBox x:Name="txtTouchDiameter"  Width="30" PreviewKeyUp="txtTouchDiameter_PreviewKeyUp" Text="3" HorizontalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"/>
-                    </StackPanel>
-                    <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,5,0,0" >
-                        <Label Content="Background : "></Label>
-                        <Button x:Name="btnBackgroundImage" Content="Image" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundImage_Click"></Button>
-                        <Button x:Name="btnBackgroundColor" Content="Color" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundColor_Click"></Button>
+                    <Label Content="Tooltip Enable : " Grid.Row="0"></Label>
+                    <CheckBox x:Name="cbToolTipEnable" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0" Grid.Column="1"/>
+                    <Label Content="Draw Enable : " Grid.Row="1"></Label>
+                    <CheckBox x:Name="cbDrawEnable" Grid.Row="1" HorizontalAlignment="Left" Margin="0,5" VerticalAlignment="Center" Padding="0" Grid.Column="1" IsChecked="True"/>
+                    <Label Content="Show Method : " Grid.Row="2"></Label>
+                    <ComboBox x:Name="cbShowMethod" HorizontalAlignment="Left" Margin="0" VerticalAlignment="Center" Padding="5,2" Grid.Row="2" Grid.Column="1" SelectedIndex="0" SelectionChanged="cbShowMethod_SelectionChanged">
+                        <ComboBoxItem Content="Time Table"/>
+                        <ComboBoxItem Content="Real Time"/>
+                    </ComboBox>
+                    <Label Content="Touch Diameter : " Grid.Row="3"></Label>
+                    <TextBox x:Name="txtTouchDiameter"  Width="30" PreviewKeyUp="txtTouchDiameter_PreviewKeyUp" Text="3" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Row="3" Grid.Column="1" VerticalAlignment="Center"/>
+                    <Label Content="Background : " Grid.Row="4"></Label>
+                    <StackPanel Grid.Row="4" Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Left" >
+                        <Button x:Name="btnBackgroundImage" Content="Image" Padding="5,1" Margin="0" Click="btnBackgroundImage_Click" VerticalAlignment="Center"></Button>
+                        <Button x:Name="btnBackgroundColor" Content="Color" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundColor_Click" VerticalAlignment="Center"></Button>
                     </StackPanel>
                 </Grid>
             </Expander>
