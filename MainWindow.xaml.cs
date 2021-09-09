@@ -1,4 +1,7 @@
-﻿using System;
+﻿
+//#define SEND_SINGLE_VALUE
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -115,7 +118,7 @@ namespace TouchProtocolTest
         //     Protocol
         /**************************/
 
-        private bool Touch_Send(Point point, TouchType type = TouchType.TOUCH_MOVE)
+        private bool Touch_Send(int id, Point point, TouchType type = TouchType.TOUCH_MOVE)
         {
             if ((SerialControl != null) && (SerialControl.IsOpen))
             {
@@ -129,7 +132,7 @@ namespace TouchProtocolTest
                 TxMsg[5] = 0x00;
                 TxMsg[6] = 0x06;
 
-                TxMsg[7] = 0x00;
+                TxMsg[7] = (byte)id;
                 if(type == TouchType.TOUCH_UP)
                 {
                     TxMsg[8] = 0x95;
@@ -171,6 +174,12 @@ namespace TouchProtocolTest
 
             if ((SerialControl != null) && (SerialControl.IsOpen))
             {
+#if SEND_SINGLE_VALUE
+                for(int cnt=0; cnt<point_list.Count; cnt++)
+                {
+                    Touch_Send(cnt, point_list[cnt], type);
+                }
+#else
                 int fingers = point_list.Count;
                 byte[] TxMsg = new byte[fingers * 6 + 10];
 
@@ -212,6 +221,7 @@ namespace TouchProtocolTest
                 TxMsg[fingers * 6 + 9] = 0x00;
 
                 SerialControl.SendData(TxMsg, MsgFormat.MSG_STRING);
+#endif
                 return true;
             }
 
