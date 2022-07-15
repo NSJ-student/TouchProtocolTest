@@ -20,11 +20,17 @@
             <TextBlock x:Name="txtCursorPos" HorizontalAlignment="Left" Margin="0" TextWrapping="Wrap" Text="none" VerticalAlignment="Top" Padding="5,2" Background="White" Canvas.Left="26" Canvas.Top="44" Panel.ZIndex="100"/>
         </Canvas>
         <StackPanel x:Name="stackConnect" Orientation="Horizontal" Margin="5" Grid.ColumnSpan="4">
-            <Label Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <CheckBox x:Name="cbCommSelect" Content="" HorizontalAlignment="Left" VerticalAlignment="Center" ToolTip="Select Serial" Checked="cbCommSelect_Checked" Unchecked="cbCommSelect_Unchecked" />
+            <Label x:Name="lblSerialPort" Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <ComboBox x:Name="cbSerialPort" HorizontalAlignment="Left" VerticalAlignment="Center" Width="90" Margin="0,2,0,1.6"/>
-            <Label Content="Baudrate: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
-            <TextBox x:Name="lblBaudrate" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="460800" VerticalAlignment="Center" Width="65" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <Label x:Name="lblBaudrate" Content="Baudrate: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="txtBaudrate" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="460800" VerticalAlignment="Center" Width="65" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             <Button x:Name="btnSerialConnect" Content="Connect" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="97" Margin="20,0,0,3.6" Click="btnSerialConnect_Click"/>
+            <Label x:Name="lblServerIP" Content="IP: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="txtServerIP" HorizontalAlignment="Left" VerticalAlignment="Center" Width="90" Margin="0,2,0,1.6" Text="172.30.1.25"/>
+            <Label x:Name="lblServerPort" Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
+            <TextBox x:Name="txtServerPort" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="7777" VerticalAlignment="Center" Width="65" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
+            <Button x:Name="btnTcpConnect" Content="Connect" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="97" Margin="20,0,0,3.6" Click="btnTcpConnect_Click"/>
         </StackPanel>
         <GridSplitter x:Name="splitter"
               HorizontalAlignment="Center"

@@ -17,6 +17,10 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.IO.Ports;
 using System.ComponentModel;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading;
+using System.Windows.Threading;
 
 namespace TouchProtocolTest
 {
@@ -31,6 +35,9 @@ namespace TouchProtocolTest
             TOUCH_UP
         };
         SerialCom SerialControl;
+        Socket ClientSock;
+        Thread ClientThread;
+        ThreadStart ts;
         List<UserTouchInfo> listTouch;
         List<Ellipse> listFinger;
         List<SolidColorBrush> listFingerColor = new List<SolidColorBrush>() { 
@@ -47,7 +54,22 @@ namespace TouchProtocolTest
         {
             InitializeComponent();
 
+            cbCommSelect.IsChecked = true;
+            lblSerialPort.Visibility = Visibility.Visible;
+            cbSerialPort.Visibility = Visibility.Visible;
+            lblBaudrate.Visibility = Visibility.Visible;
+            txtBaudrate.Visibility = Visibility.Visible;
+            btnSerialConnect.Visibility = Visibility.Visible;
+
+            lblServerIP.Visibility = Visibility.Hidden;
+            txtServerIP.Visibility = Visibility.Hidden;
+            lblServerPort.Visibility = Visibility.Hidden;
+            txtServerPort.Visibility = Visibility.Hidden;
+            btnTcpConnect.Visibility = Visibility.Hidden;
+
             SerialControl = null;
+            ClientSock = null;
+            ts = new ThreadStart(RxTcpClientMsg);
 
             cvsTouch.MouseMove += canvas_MouseMove;
             cvsTouch.MouseUp += canvas_MouseUp;
@@ -172,58 +194,71 @@ namespace TouchProtocolTest
                 return false;
             }
 
-            if ((SerialControl != null) && (SerialControl.IsOpen))
+            if ((SerialControl == null) || (!SerialControl.IsOpen))
             {
-#if SEND_SINGLE_VALUE
-                for(int cnt=0; cnt<point_list.Count; cnt++)
+                if ((ClientSock == null) || (!ClientSock.Connected))
                 {
-                    Touch_Send(cnt, point_list[cnt], type);
+                    return false;
                 }
+            }
+
+#if SEND_SINGLE_VALUE
+            for(int cnt=0; cnt<point_list.Count; cnt++)
+            {
+                Touch_Send(cnt, point_list[cnt], type);
+            }
 #else
                 int fingers = point_list.Count;
-                byte[] TxMsg = new byte[fingers * 6 + 10];
+            byte[] TxMsg = new byte[fingers * 6 + 10];
 
-                TxMsg[0] = 0x02;
-                TxMsg[1] = 0x06;
-                TxMsg[2] = 0x60;
-                TxMsg[3] = 0x00;
-                TxMsg[4] = 0x00;
-                TxMsg[5] = 0x00;
-                TxMsg[6] = (byte)(fingers * 6);
+            TxMsg[0] = 0x02;
+            TxMsg[1] = 0x06;
+            TxMsg[2] = 0x60;
+            TxMsg[3] = 0x00;
+            TxMsg[4] = 0x00;
+            TxMsg[5] = 0x00;
+            TxMsg[6] = (byte)(fingers * 6);
 
-                for (int cnt=0; cnt<fingers; cnt++)
+            for (int cnt=0; cnt<fingers; cnt++)
+            {
+                TxMsg[(6 * cnt) + 7] = (byte)cnt;
+                if (type == TouchType.TOUCH_UP)
                 {
-                    TxMsg[(6 * cnt) + 7] = (byte)cnt;
-                    if (type == TouchType.TOUCH_UP)
-                    {
-                        TxMsg[(6 * cnt) + 8] = 0x95;
-                    }
-                    else if (type == TouchType.TOUCH_DOWN)
-                    {
-                        TxMsg[(6 * cnt) + 8] = 0x94;
-                    }
-                    else if (type == TouchType.TOUCH_MOVE)
-                    {
-                        TxMsg[(6 * cnt) + 8] = 0x91;
-                    }
-                    else
-                    {
-                        TxMsg[(6 * cnt) + 8] = 0x90;
-                    }
-                    TxMsg[(6 * cnt) + 9] = (byte)((int)(point_list[cnt].X) >> 0);
-                    TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 8);
-                    TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].Y) >> 0);
-                    TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 8);
+                    TxMsg[(6 * cnt) + 8] = 0x95;
                 }
+                else if (type == TouchType.TOUCH_DOWN)
+                {
+                    TxMsg[(6 * cnt) + 8] = 0x94;
+                }
+                else if (type == TouchType.TOUCH_MOVE)
+                {
+                    TxMsg[(6 * cnt) + 8] = 0x91;
+                }
+                else
+                {
+                    TxMsg[(6 * cnt) + 8] = 0x90;
+                }
+                TxMsg[(6 * cnt) + 9] = (byte)((int)(point_list[cnt].X) >> 0);
+                TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 8);
+                TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].Y) >> 0);
+                TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 8);
+            }
 
-                TxMsg[fingers * 6 + 7] = 0x0c;
-                TxMsg[fingers * 6 + 8] = 0x0d;
-                TxMsg[fingers * 6 + 9] = 0x00;
+            TxMsg[fingers * 6 + 7] = 0x0c;
+            TxMsg[fingers * 6 + 8] = 0x0d;
+            TxMsg[fingers * 6 + 9] = 0x00;
 
+            if ((SerialControl != null) && (SerialControl.IsOpen))
+            {
                 SerialControl.SendData(TxMsg, MsgFormat.MSG_STRING);
-#endif
                 return true;
             }
+            if ((ClientSock != null) && (ClientSock.Connected))
+            {
+                ClientSock.Send(TxMsg);
+                return true;
+            }
+#endif
 
             return false;
         }
@@ -264,6 +299,49 @@ namespace TouchProtocolTest
                 return true;
             }
             return false;
+        }
+
+        private void RxTcpClientMsg()
+        {
+            try
+            {
+                while (ClientSock.Connected)
+                {
+                    if (ClientSock.Available > 0)
+                    {
+                        byte[] data = new byte[ClientSock.Available];
+                        int rxLength = ClientSock.Receive(data);
+                        if (rxLength == 0)
+                        {
+                            break;
+                        }
+                        
+                    }
+                    Thread.Sleep(1);
+                }
+                
+                Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                {
+                    Title = "Touch Test";
+                    btnTcpConnect.Content = "Connect";
+                    txtServerPort.IsEnabled = true;
+                    txtServerIP.IsEnabled = true;
+                    ClientSock.Disconnect(false);
+                    ClientSock.Close();
+                }));
+            }
+            catch (Exception es)
+            {
+                Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+                {
+                    Title = "Touch Test";
+                    btnTcpConnect.Content = "Connect";
+                    txtServerPort.IsEnabled = true;
+                    txtServerIP.IsEnabled = true;
+                    ClientSock.Disconnect(false);
+                    ClientSock.Close();
+                }));
+            }
         }
 
 
@@ -772,6 +850,107 @@ namespace TouchProtocolTest
         //     UI Event
         /**************************/
 
+        private void cbCommSelect_Checked(object sender, RoutedEventArgs e)
+        {
+            if ((ClientSock != null) && (ClientSock.Connected))
+            {
+                Title = "Touch Test";
+                btnTcpConnect.Content = "Connect";
+                txtServerPort.IsEnabled = true;
+                txtServerIP.IsEnabled = true;
+                ClientSock.Disconnect(false);
+                ClientSock.Close();
+                if (ClientThread.IsAlive)
+                {
+                    ClientThread.Abort();
+                }
+            }
+            lblSerialPort.Visibility = Visibility.Visible;
+            cbSerialPort.Visibility = Visibility.Visible;
+            lblBaudrate.Visibility = Visibility.Visible;
+            txtBaudrate.Visibility = Visibility.Visible;
+            btnSerialConnect.Visibility = Visibility.Visible;
+
+            lblServerIP.Visibility = Visibility.Collapsed;
+            txtServerIP.Visibility = Visibility.Collapsed;
+            lblServerPort.Visibility = Visibility.Collapsed;
+            txtServerPort.Visibility = Visibility.Collapsed;
+            btnTcpConnect.Visibility = Visibility.Collapsed;
+        }
+
+        private void cbCommSelect_Unchecked(object sender, RoutedEventArgs e)
+        {
+            if ((SerialControl != null) && (SerialControl.IsOpen))
+            {
+                Title = "Touch Test";
+                btnSerialConnect.Content = "Connect";
+                cbSerialPort.IsEnabled = true;
+                txtBaudrate.IsEnabled = true;
+                SerialControl.ClosePort();
+            }
+            lblSerialPort.Visibility = Visibility.Collapsed;
+            cbSerialPort.Visibility = Visibility.Collapsed;
+            lblBaudrate.Visibility = Visibility.Collapsed;
+            txtBaudrate.Visibility = Visibility.Collapsed;
+            btnSerialConnect.Visibility = Visibility.Collapsed;
+
+            lblServerIP.Visibility = Visibility.Visible;
+            txtServerIP.Visibility = Visibility.Visible;
+            lblServerPort.Visibility = Visibility.Visible;
+            txtServerPort.Visibility = Visibility.Visible;
+            btnTcpConnect.Visibility = Visibility.Visible;
+        }
+
+        private void btnTcpConnect_Click(object sender, RoutedEventArgs e)
+        {
+            if ((string)btnTcpConnect.Content == "Connect")
+            {
+                if ((ClientSock != null) && (ClientSock.Connected))
+                {
+                    ClientSock.Close();
+                }
+
+                IPAddress ip = IPAddress.Parse(txtServerIP.Text);
+                int port = Convert.ToInt32(txtServerPort.Text);
+                IPEndPoint ClientIP = new IPEndPoint(ip, port);
+
+                try
+                {
+                    ClientSock = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+                    ClientSock.Connect(ClientIP);
+                    ClientThread = new Thread(ts);
+                    ClientThread.Start();
+
+                    Title = "Touch Test - " + txtServerIP.Text;
+                    btnTcpConnect.Content = "Close";
+                    txtServerPort.IsEnabled = false;
+                    txtServerIP.IsEnabled = false;
+                }
+                catch (Exception es)
+                {
+                    Title = "Touch Test - connect failed";
+                    txtServerPort.IsEnabled = true;
+                    txtServerIP.IsEnabled = true;
+                }
+            }
+            else
+            {
+                if (ClientSock.Connected)
+                {
+                    ClientSock.Disconnect(false);
+                    ClientSock.Close();
+                }
+                if (ClientThread.IsAlive)
+                {
+                    ClientThread.Abort();
+                }
+                btnTcpConnect.Content = "Connect";
+                Title = "Touch Test";
+                txtServerPort.IsEnabled = true;
+                txtServerIP.IsEnabled = true;
+            }
+        }
+
         private void btnSerialConnect_Click(object sender, RoutedEventArgs e)
         {
             if ((string)btnSerialConnect.Content == "Connect")
@@ -781,20 +960,20 @@ namespace TouchProtocolTest
                     SerialControl.ClosePort();
                 }
                 string port = cbSerialPort.SelectedItem.ToString();
-                int baudrate = Int32.Parse(lblBaudrate.Text);
+                int baudrate = Int32.Parse(txtBaudrate.Text);
                 SerialControl = new SerialCom(port, baudrate);
                 if (SerialControl.OpenPort())
                 {
                     Title = "Touch Test - " + port;
                     btnSerialConnect.Content = "Close";
                     cbSerialPort.IsEnabled = false;
-                    lblBaudrate.IsEnabled = false;
+                    txtBaudrate.IsEnabled = false;
                 }
                 else
                 {
                     Title = "Touch Test - connect failed";
                     cbSerialPort.IsEnabled = true;
-                    lblBaudrate.IsEnabled = true;
+                    txtBaudrate.IsEnabled = true;
                 }
             }
             else
@@ -803,7 +982,7 @@ namespace TouchProtocolTest
                 btnSerialConnect.Content = "Connect";
                 Title = "Touch Test";
                 cbSerialPort.IsEnabled = true;
-                lblBaudrate.IsEnabled = true;
+                txtBaudrate.IsEnabled = true;
             }
         }
 
