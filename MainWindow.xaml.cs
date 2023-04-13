@@ -213,45 +213,96 @@ namespace TouchProtocolTest
                 Touch_Send(cnt, point_list[cnt], type);
             }
 #else
-                int fingers = point_list.Count;
-            byte[] TxMsg = new byte[fingers * 6 + 10];
+            int fingers = point_list.Count;
+            byte[] TxMsg;
 
-            TxMsg[0] = 0x02;
-            TxMsg[1] = 0x06;
-            TxMsg[2] = 0x60;
-            TxMsg[3] = 0x00;
-            TxMsg[4] = 0x00;
-            TxMsg[5] = 0x00;
-            TxMsg[6] = (byte)(fingers * 6);
-
-            for (int cnt=0; cnt<fingers; cnt++)
+            if(cbChannelEnable.IsChecked == true)
             {
-                TxMsg[(6 * cnt) + 7] = (byte)cnt;
-                if (type == TouchType.TOUCH_UP)
+                TxMsg = new byte[fingers * 6 + 11];
+                byte channel = Convert.ToByte(txtTouchChannel.Text);
+                if(channel > 8)
                 {
-                    TxMsg[(6 * cnt) + 8] = 0x95;
+                    return false;
                 }
-                else if (type == TouchType.TOUCH_DOWN)
-                {
-                    TxMsg[(6 * cnt) + 8] = 0x94;
-                }
-                else if (type == TouchType.TOUCH_MOVE)
-                {
-                    TxMsg[(6 * cnt) + 8] = 0x91;
-                }
-                else
-                {
-                    TxMsg[(6 * cnt) + 8] = 0x90;
-                }
-                TxMsg[(6 * cnt) + 9] = (byte)((int)(point_list[cnt].X) >> 0);
-                TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 8);
-                TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].Y) >> 0);
-                TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 8);
-            }
 
-            TxMsg[fingers * 6 + 7] = 0x0c;
-            TxMsg[fingers * 6 + 8] = 0x0d;
-            TxMsg[fingers * 6 + 9] = 0x00;
+                TxMsg[0] = 0x02;
+                TxMsg[1] = 0x06;
+                TxMsg[2] = 0x71;
+                TxMsg[3] = 0x00;
+                TxMsg[4] = 0x00;
+                TxMsg[5] = 0x00;
+                TxMsg[6] = (byte)((fingers * 6)+1);
+
+                TxMsg[7] = channel;
+                for (int cnt = 0; cnt < fingers; cnt++)
+                {
+                    TxMsg[(6 * cnt) + 8] = (byte)cnt;
+                    if (type == TouchType.TOUCH_UP)
+                    {
+                        TxMsg[(6 * cnt) + 9] = 0x95;
+                    }
+                    else if (type == TouchType.TOUCH_DOWN)
+                    {
+                        TxMsg[(6 * cnt) + 9] = 0x94;
+                    }
+                    else if (type == TouchType.TOUCH_MOVE)
+                    {
+                        TxMsg[(6 * cnt) + 9] = 0x91;
+                    }
+                    else
+                    {
+                        TxMsg[(6 * cnt) + 9] = 0x90;
+                    }
+                    TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 0);
+                    TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].X) >> 8);
+                    TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 0);
+                    TxMsg[(6 * cnt) + 13] = (byte)((int)(point_list[cnt].Y) >> 8);
+                }
+
+                TxMsg[fingers * 6 + 8] = 0x0c;
+                TxMsg[fingers * 6 + 9] = 0x0d;
+                TxMsg[fingers * 6 + 10] = 0x00;
+            }
+            else
+            {
+                TxMsg = new byte[fingers * 6 + 10];
+                TxMsg[0] = 0x02;
+                TxMsg[1] = 0x06;
+                TxMsg[2] = 0x60;
+                TxMsg[3] = 0x00;
+                TxMsg[4] = 0x00;
+                TxMsg[5] = 0x00;
+                TxMsg[6] = (byte)(fingers * 6);
+
+                for (int cnt = 0; cnt < fingers; cnt++)
+                {
+                    TxMsg[(6 * cnt) + 7] = (byte)cnt;
+                    if (type == TouchType.TOUCH_UP)
+                    {
+                        TxMsg[(6 * cnt) + 8] = 0x95;
+                    }
+                    else if (type == TouchType.TOUCH_DOWN)
+                    {
+                        TxMsg[(6 * cnt) + 8] = 0x94;
+                    }
+                    else if (type == TouchType.TOUCH_MOVE)
+                    {
+                        TxMsg[(6 * cnt) + 8] = 0x91;
+                    }
+                    else
+                    {
+                        TxMsg[(6 * cnt) + 8] = 0x90;
+                    }
+                    TxMsg[(6 * cnt) + 9] = (byte)((int)(point_list[cnt].X) >> 0);
+                    TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 8);
+                    TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].Y) >> 0);
+                    TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 8);
+                }
+
+                TxMsg[fingers * 6 + 7] = 0x0c;
+                TxMsg[fingers * 6 + 8] = 0x0d;
+                TxMsg[fingers * 6 + 9] = 0x00;
+            }
 
             if ((SerialControl != null) && (SerialControl.IsOpen))
             {

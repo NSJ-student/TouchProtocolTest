@@ -129,13 +129,14 @@
                     </ScrollViewer>
                 </TabItem>
             </TabControl>
-            <Expander x:Name="expanderOption" Header="Options" Grid.Row="5" Padding="0,5,0,0">
+            <Expander x:Name="expanderOption" Header="Options" Grid.Row="7" Padding="0,5,0,0">
                 <Grid Margin="10,5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -161,6 +162,11 @@
                     </StackPanel>
                     <Label Content="Touch Interval : " Grid.Row="5"></Label>
                     <TextBox x:Name="txtTouchInterval"  Width="70" Text="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" PreviewKeyUp="txtTouchInterval_PreviewKeyUp"/>
+                    <Label Content="Touch Channel : " Grid.Row="6"></Label>
+                    <StackPanel Grid.Row="6" Orientation="Horizontal" Grid.Column="1" HorizontalAlignment="Left" >
+                        <CheckBox x:Name="cbChannelEnable" Padding="5,1" Margin="0" VerticalAlignment="Center"></CheckBox>
+                        <TextBox x:Name="txtTouchChannel" Text="0" Padding="5,1" Margin="5,0,0,0" VerticalAlignment="Center"></TextBox>
+                    </StackPanel>
                 </Grid>
             </Expander>
         </Grid>
