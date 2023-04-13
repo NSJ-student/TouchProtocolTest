@@ -129,13 +129,14 @@
                     </ScrollViewer>
                 </TabItem>
             </TabControl>
-            <Expander x:Name="expanderOption" Header="Options" Grid.Row="4" Padding="0,5,0,0">
+            <Expander x:Name="expanderOption" Header="Options" Grid.Row="5" Padding="0,5,0,0">
                 <Grid Margin="10,5">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="1*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
                         <RowDefinition Height="Auto"/>
@@ -158,6 +159,8 @@
                         <Button x:Name="btnBackgroundImage" Content="Image" Padding="5,1" Margin="0" Click="btnBackgroundImage_Click" VerticalAlignment="Center"></Button>
                         <Button x:Name="btnBackgroundColor" Content="Color" Padding="5,1" Margin="5,0,0,0" Click="btnBackgroundColor_Click" VerticalAlignment="Center"></Button>
                     </StackPanel>
+                    <Label Content="Touch Interval : " Grid.Row="5"></Label>
+                    <TextBox x:Name="txtTouchInterval"  Width="70" Text="0" HorizontalAlignment="Left" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Grid.Row="5" Grid.Column="1" VerticalAlignment="Center" PreviewKeyUp="txtTouchInterval_PreviewKeyUp"/>
                 </Grid>
             </Expander>
         </Grid>

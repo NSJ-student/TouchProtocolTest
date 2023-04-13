@@ -49,10 +49,15 @@ namespace TouchProtocolTest
         };
         public double touchObjDiameter = 3;
         public static RoutedCommand serialRefresh = new RoutedCommand();
+        int touchIntervalMs;
+        int touchLastMs;
 
         public MainWindow()
         {
             InitializeComponent();
+
+            touchIntervalMs = 0;
+            touchLastMs = 0;
 
             cbCommSelect.IsChecked = true;
             lblSerialPort.Visibility = Visibility.Visible;
@@ -338,7 +343,7 @@ namespace TouchProtocolTest
                     btnTcpConnect.Content = "Connect";
                     txtServerPort.IsEnabled = true;
                     txtServerIP.IsEnabled = true;
-                    ClientSock.Disconnect(false);
+//                    ClientSock.Disconnect(false);
                     ClientSock.Close();
                 }));
             }
@@ -641,6 +646,15 @@ namespace TouchProtocolTest
         {
             if (!cvsTouch.IsMouseCaptured)
                 return;
+
+            if (touchIntervalMs > 0)
+            {
+                if (((Environment.TickCount & Int32.MaxValue) - touchLastMs) < touchIntervalMs)
+                {
+                    return;
+                }
+                touchLastMs = (Environment.TickCount & Int32.MaxValue);
+            }
 
             Point location = e.GetPosition(cvsTouch);
             touchPanel_EventOccurred(location);
@@ -1069,6 +1083,13 @@ namespace TouchProtocolTest
             }
         }
 
+        private void txtTouchInterval_PreviewKeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Enter)
+            {
+                touchIntervalMs = Convert.ToInt32(txtTouchInterval.Text);
+            }
+        }
     }
 
     public class UserTouchInfo : INotifyPropertyChanged
