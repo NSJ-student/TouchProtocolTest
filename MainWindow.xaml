@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:TouchProtocolTest"
         mc:Ignorable="d"
-        Title="Touch Protocol Test" Height="500" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged" WindowStyle="ToolWindow">
+        Title="Touch Protocol Test" Height="500" Width="800" KeyDown="Window_KeyDown" Closing="Window_Closing" SizeChanged="mainWindow_SizeChanged" WindowStyle="ToolWindow" LocationChanged="mainWindow_LocationChanged">
     <Grid x:Name="gridMain" Margin="0">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -31,6 +31,7 @@
             <Label x:Name="lblServerPort" Content="Port: " HorizontalAlignment="Left" VerticalAlignment="Center" Margin="10,0,0,0"/>
             <TextBox x:Name="txtServerPort" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" Text="7777" VerticalAlignment="Center" Width="65" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"/>
             <Button x:Name="btnTcpConnect" Content="Connect" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="97" Margin="20,0,0,3.6" Click="btnTcpConnect_Click"/>
+            <Button x:Name="btnShowLog" Content="Log" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="75" Margin="40,0,0,3.6" Click="btnShowLog_Click" />
         </StackPanel>
         <GridSplitter x:Name="splitter"
               HorizontalAlignment="Center"

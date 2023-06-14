@@ -1,0 +1,22 @@
+﻿<Window x:Class="TouchProtocolTest.InputLog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:TouchProtocolTest"
+        mc:Ignorable="d"
+        Title="InputLog" Height="450" Width="400" Topmost="True" Closing="Window_Closing">
+    <Grid Margin="5">
+        <Grid.RowDefinitions>
+            <RowDefinition/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <ScrollViewer x:Name="scrollViewer">
+            <TextBlock x:Name="txtInputLog" TextWrapping="Wrap" FontFamily="Courier New" ScrollViewer.CanContentScroll="True" />
+        </ScrollViewer>
+        <Button x:Name="btnClearLog" Content="Clear" Grid.Row="1" VerticalAlignment="Top" Margin="0,10,0,0" Click="btnClearLog_Click"/>
+    </Grid>
+</Window>

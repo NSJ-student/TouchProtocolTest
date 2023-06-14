@@ -137,8 +137,9 @@ namespace TouchProtocolTest
 			{
 				if(PortInfo.BytesToRead > 0)
 				{
-					byte[] reads = new byte[PortInfo.BytesToRead];
-					PortInfo.Read(reads, 0, PortInfo.BytesToRead);
+					int read_size = PortInfo.BytesToRead;
+					byte[] reads = new byte[read_size];
+					PortInfo.Read(reads, 0, read_size);
 
 					if(OnRecvMsg!=null) OnRecvMsg(reads);
 				}

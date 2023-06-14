@@ -63,8 +63,15 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="IComm.cs" />
+    <Compile Include="InputLog.xaml.cs">
+      <DependentUpon>InputLog.xaml</DependentUpon>
+    </Compile>
     <Compile Include="KeyParser.cs" />
     <Compile Include="SerialCom.cs" />
+    <Page Include="InputLog.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

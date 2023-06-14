@@ -34,6 +34,7 @@ namespace TouchProtocolTest
             TOUCH_MOVE,
             TOUCH_UP
         };
+        InputLog windowInputLog;
         SerialCom SerialControl;
         Socket ClientSock;
         Thread ClientThread;
@@ -47,7 +48,7 @@ namespace TouchProtocolTest
             Brushes.SkyBlue, 
             Brushes.MediumPurple  
         };
-        public double touchObjDiameter = 3;
+        public double touchObjDiameter;
         public static RoutedCommand serialRefresh = new RoutedCommand();
         int touchIntervalMs;
         int touchLastMs;
@@ -56,8 +57,12 @@ namespace TouchProtocolTest
         {
             InitializeComponent();
 
-            touchIntervalMs = 0;
+            touchObjDiameter = 7;
+            touchIntervalMs = 15;
             touchLastMs = 0;
+
+            txtTouchDiameter.Text = ((int)touchObjDiameter).ToString();
+            txtTouchInterval.Text = ((int)touchIntervalMs).ToString();
 
             cbCommSelect.IsChecked = true;
             lblSerialPort.Visibility = Visibility.Visible;
@@ -66,12 +71,13 @@ namespace TouchProtocolTest
             txtBaudrate.Visibility = Visibility.Visible;
             btnSerialConnect.Visibility = Visibility.Visible;
 
-            lblServerIP.Visibility = Visibility.Hidden;
-            txtServerIP.Visibility = Visibility.Hidden;
-            lblServerPort.Visibility = Visibility.Hidden;
-            txtServerPort.Visibility = Visibility.Hidden;
-            btnTcpConnect.Visibility = Visibility.Hidden;
+            lblServerIP.Visibility = Visibility.Collapsed;
+            txtServerIP.Visibility = Visibility.Collapsed;
+            lblServerPort.Visibility = Visibility.Collapsed;
+            txtServerPort.Visibility = Visibility.Collapsed;
+            btnTcpConnect.Visibility = Visibility.Collapsed;
 
+            windowInputLog = new InputLog();
             SerialControl = null;
             ClientSock = null;
             ts = new ThreadStart(RxTcpClientMsg);
@@ -176,10 +182,13 @@ namespace TouchProtocolTest
                 {
                     TxMsg[8] = 0x90;
                 }
-                TxMsg[9] = (byte)((int)(point.X) >> 0);
-                TxMsg[10] = (byte)((int)(point.X) >> 8);
-                TxMsg[11] = (byte)((int)(point.Y) >> 0);
-                TxMsg[12] = (byte)((int)(point.Y) >> 8);
+
+                int x = Convert.ToInt32(Math.Round(point.X));
+                int y = Convert.ToInt32(Math.Round(point.Y));
+                TxMsg[9]  = (byte)(x >> 0);
+                TxMsg[10] = (byte)(x >> 8);
+                TxMsg[11] = (byte)(y >> 0);
+                TxMsg[12] = (byte)(y >> 8);
 
                 TxMsg[13] = 0x0c;
                 TxMsg[14] = 0x0d;
@@ -253,10 +262,13 @@ namespace TouchProtocolTest
                     {
                         TxMsg[(6 * cnt) + 9] = 0x90;
                     }
-                    TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 0);
-                    TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].X) >> 8);
-                    TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 0);
-                    TxMsg[(6 * cnt) + 13] = (byte)((int)(point_list[cnt].Y) >> 8);
+
+                    int x = Convert.ToInt32(Math.Round(point_list[cnt].X));
+                    int y = Convert.ToInt32(Math.Round(point_list[cnt].Y));
+                    TxMsg[(6 * cnt) + 10] = (byte)(x >> 0);
+                    TxMsg[(6 * cnt) + 11] = (byte)(x >> 8);
+                    TxMsg[(6 * cnt) + 12] = (byte)(y >> 0);
+                    TxMsg[(6 * cnt) + 13] = (byte)(y >> 8);
                 }
 
                 TxMsg[fingers * 6 + 8] = 0x0c;
@@ -293,10 +305,13 @@ namespace TouchProtocolTest
                     {
                         TxMsg[(6 * cnt) + 8] = 0x90;
                     }
-                    TxMsg[(6 * cnt) + 9] = (byte)((int)(point_list[cnt].X) >> 0);
-                    TxMsg[(6 * cnt) + 10] = (byte)((int)(point_list[cnt].X) >> 8);
-                    TxMsg[(6 * cnt) + 11] = (byte)((int)(point_list[cnt].Y) >> 0);
-                    TxMsg[(6 * cnt) + 12] = (byte)((int)(point_list[cnt].Y) >> 8);
+
+                    int x = Convert.ToInt32(Math.Round(point_list[cnt].X));
+                    int y = Convert.ToInt32(Math.Round(point_list[cnt].Y));
+                    TxMsg[(6 * cnt) + 9]  = (byte)(x >> 0);
+                    TxMsg[(6 * cnt) + 10] = (byte)(x >> 8);
+                    TxMsg[(6 * cnt) + 11] = (byte)(y >> 0);
+                    TxMsg[(6 * cnt) + 12] = (byte)(y >> 8);
                 }
 
                 TxMsg[fingers * 6 + 7] = 0x0c;
@@ -399,7 +414,15 @@ namespace TouchProtocolTest
                 }));
             }
         }
-
+        
+        private bool RxSerialMsg(byte[] recvMsg)
+        {
+            Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
+            {
+                windowInputLog.appendText(Encoding.Default.GetString(recvMsg));
+            }));
+            return true;
+        }
 
         /**************************/
         //     Touch Panel
@@ -910,6 +933,12 @@ namespace TouchProtocolTest
             cvsTouch.Background = Brushes.Black;
         }
 
+        private void repositionLogWindow()
+        {
+            var location = this.PointToScreen(new Point(0, 0));
+            windowInputLog.Left = location.X + this.Width;
+            windowInputLog.Top = location.Y;
+        }
 
         /**************************/
         //     UI Event
@@ -1020,6 +1049,10 @@ namespace TouchProtocolTest
         {
             if ((string)btnSerialConnect.Content == "Connect")
             {
+                if(cbSerialPort.Items.Count == 0)
+                {
+                    return;
+                }
                 if ((SerialControl != null) && (SerialControl.IsOpen))
                 {
                     SerialControl.ClosePort();
@@ -1027,6 +1060,7 @@ namespace TouchProtocolTest
                 string port = cbSerialPort.SelectedItem.ToString();
                 int baudrate = Int32.Parse(txtBaudrate.Text);
                 SerialControl = new SerialCom(port, baudrate);
+                SerialControl.OnRecvMsg += RxSerialMsg;
                 if (SerialControl.OpenPort())
                 {
                     Title = "Touch Test - " + port;
@@ -1051,6 +1085,19 @@ namespace TouchProtocolTest
             }
         }
 
+        private void btnShowLog_Click(object sender, RoutedEventArgs e)
+        {
+            if(windowInputLog.IsVisible)
+            {
+                windowInputLog.Hide();
+            }
+            else
+            {
+                repositionLogWindow();
+                windowInputLog.Show();
+            }
+        }
+
         private void Window_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Key == Key.F2)
@@ -1070,11 +1117,20 @@ namespace TouchProtocolTest
             {
                 SerialControl.ClosePort();
             }
+
+            if ((ClientSock != null) && (ClientSock.Connected))
+            {
+                ClientSock.Close();
+            }
+
+            windowInputLog.terminateApp = true;
+            windowInputLog.Close();
         }
         
         private void mainWindow_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             touchPanel_SizeChange();
+            repositionLogWindow();
         }
 
         private void StackPanel_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -1139,6 +1195,14 @@ namespace TouchProtocolTest
             if (e.Key == Key.Enter)
             {
                 touchIntervalMs = Convert.ToInt32(txtTouchInterval.Text);
+            }
+        }
+
+        private void mainWindow_LocationChanged(object sender, EventArgs e)
+        {
+            if (windowInputLog.IsVisible)
+            {
+                repositionLogWindow();
             }
         }
     }
